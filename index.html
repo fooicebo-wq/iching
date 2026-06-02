@@ -618,7 +618,7 @@ function showResult() {
   display.innerHTML = '';
 
   // 本卦卡
-  display.appendChild(makeHexCard(origNum, origLines.map(l => ({ yang: l.yang, changing: l.changing })), '本 卦'));
+  display.appendChild(makeHexCard(origNum, origLines.map(l => ({ yang: l.yang, changing: l.changing })), '本 卦', '問題核心'));
 
   if (changedNum && changedNum !== origNum) {
     const arrow = document.createElement('div');
@@ -627,7 +627,7 @@ function showResult() {
     display.appendChild(arrow);
 
     const changedLineDisplay = lines.map(l => ({ yang: l.changing ? !l.yang : l.yang, changing: false }));
-    display.appendChild(makeHexCard(changedNum, changedLineDisplay, '之 卦'));
+    display.appendChild(makeHexCard(changedNum, changedLineDisplay, '之 卦', '未來發展走向'));
   }
 
   // 動爻資訊
@@ -662,7 +662,7 @@ function showResult() {
   area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-function makeHexCard(hexNum, lineDisplay, label) {
+function makeHexCard(hexNum, lineDisplay, label, plainLabel) {
   const h = HEXAGRAMS[hexNum];
   const card = document.createElement('div');
   card.className = 'hex-card';
@@ -719,7 +719,7 @@ function makeHexCard(hexNum, lineDisplay, label) {
   if (h.plain) {
     const plainBox = document.createElement('div');
     plainBox.className = 'hex-plain';
-    plainBox.innerHTML = '<span class="plain-label">白話解說</span>' + h.plain;
+    plainBox.innerHTML = '<span class="plain-label">' + (plainLabel || '白話解說') + '</span>' + h.plain;
     card.appendChild(plainBox);
   }
 
