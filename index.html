@@ -169,6 +169,32 @@
     line-height: 1.85;
     text-align: left;
   }
+  .interp-box {
+    background: #1a1005;
+    border: 1px solid #4a3a10;
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .interp-row {
+    font-size: 0.88rem;
+    color: #c8a878;
+    line-height: 1.6;
+  }
+  .interp-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 0.1rem 0.55rem;
+    border-radius: 3px;
+    margin-right: 0.5rem;
+    letter-spacing: 0.05em;
+    vertical-align: middle;
+  }
+  .interp-tag.orig { background: #c89000; color: #1a1005; }
+  .interp-tag.changed { background: #4a8a60; color: #e8f8ee; }
   .plain-label {
     display: inline-block;
     font-size: 0.7rem;
@@ -606,29 +632,30 @@ function showResult() {
 
   // 動爻資訊
   const info = document.getElementById('changingInfo');
+  const q = document.getElementById('question').value.trim();
+  let html = q ? `<strong>所問：</strong>${q}<br><br>` : '';
+
   if (changingLineNums.length === 0) {
-    info.innerHTML = '<strong>無動爻</strong>，以本卦卦辭為斷。';
+    html += `<strong>無動爻</strong>，以本卦卦辭為斷。<br><br>`;
+    html += `<div class="interp-box">`;
+    html += `<div class="interp-row"><span class="interp-tag orig">本卦</span>代表你<strong>目前的處境與問題核心</strong>，從本卦的白話解說了解現況。</div>`;
+    html += `</div>`;
   } else {
     const names = ['初爻','二爻','三爻','四爻','五爻','上爻'];
     const lineNames = changingLineNums.map(n => names[n - 1]).join('、');
-    let html = `<strong>動爻：</strong>${lineNames}（共 ${changingLineNums.length} 個動爻）`;
+    html += `<strong>動爻：</strong>${lineNames}（共 ${changingLineNums.length} 個動爻）`;
     if (changedNum && changedNum !== origNum) {
-      html += `<br>本卦 <strong>${HEXAGRAMS[origNum].name}</strong> 化為之卦 <strong>${HEXAGRAMS[changedNum].name}</strong>，以之卦為主要參考。`;
+      html += `，本卦 <strong>${HEXAGRAMS[origNum].name}</strong> 化為之卦 <strong>${HEXAGRAMS[changedNum].name}</strong>。`;
     }
     html += `<br><br>`;
-    html += `<a class="link-btn" href="https://www.chineseclassic.com/content/125" target="_blank">查閱易經原文 ↗</a>`;
+    html += `<div class="interp-box">`;
+    html += `<div class="interp-row"><span class="interp-tag orig">本卦</span>代表你<strong>現在的處境與問題核心</strong>，反映當下的狀態與根源。</div>`;
+    html += `<div class="interp-row"><span class="interp-tag changed">之卦</span>代表事情<strong>未來的發展走向</strong>，動爻翻轉後呈現的結果與趨勢。</div>`;
+    html += `</div>`;
+  }
 
-    const q = document.getElementById('question').value.trim();
-    if (q) {
-      html = `<strong>所問：</strong>${q}<br><br>` + html;
-    }
-    info.innerHTML = html;
-  }
-  if (changingLineNums.length === 0) {
-    let extra = `<br><br><a class="link-btn" href="https://www.chineseclassic.com/content/125" target="_blank">查閱易經原文 ↗</a>`;
-    const q = document.getElementById('question').value.trim();
-    info.innerHTML = (q ? `<strong>所問：</strong>${q}<br><br>` : '') + info.innerHTML + extra;
-  }
+  html += `<br><a class="link-btn" href="https://www.chineseclassic.com/content/125" target="_blank">查閱易經原文 ↗</a>`;
+  info.innerHTML = html;
 
   area.classList.add('visible');
   document.getElementById('resetBtn').style.display = 'block';
