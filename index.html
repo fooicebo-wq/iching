@@ -254,6 +254,24 @@
     border-top: 1px solid #3a2a0830;
   }
   .footer-logo img { width: 220px; opacity: 0.85; }
+  .music-bar {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+    padding: 0.7rem 1.2rem;
+    background: #2a1e0a;
+    border: 1px solid #4a3a10;
+    border-radius: 8px;
+  }
+  .music-btn {
+    background: none; border: 1px solid #6a5020;
+    color: #c8a050; font-size: 1.1rem;
+    width: 36px; height: 36px; border-radius: 50%;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; flex-shrink: 0;
+  }
+  .music-btn:hover { background: #3a2a0a; border-color: #c89000; }
+  .music-label { font-size: 0.78rem; color: #806030; letter-spacing: 0.05em; }
 
   .progress-bar {
     height: 4px;
@@ -320,6 +338,18 @@
   </div>
 
   <button class="reset-btn" id="resetBtn" onclick="resetAll()" style="display:none">重 新 卜 卦</button>
+
+  <div class="music-bar">
+    <button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="播放/暫停背景音樂">▶</button>
+    <span class="music-label">🎵 古箏背景音樂</span>
+    <input type="range" id="volSlider" min="0" max="1" step="0.05" value="0.4"
+      oninput="setVol(this.value)"
+      style="width:80px;accent-color:#c89000;cursor:pointer;">
+    <span class="music-label" id="volText">40%</span>
+  </div>
+  <audio id="bgMusic" loop>
+    <source src="https://archive.org/download/Guzheng-12068/Kharkov_-_01_-_Guzheng.mp3" type="audio/mpeg">
+  </audio>
 
   <div class="footer-logo">
     <img src="logo.png" alt="集思室內設計 GIS Interior Design">
@@ -735,6 +765,22 @@ function makeHexCard(hexNum, lineDisplay, label, plainLabel) {
   }
 
   return card;
+}
+
+function toggleMusic() {
+  const audio = document.getElementById('bgMusic');
+  const btn = document.getElementById('musicBtn');
+  if (audio.paused) {
+    audio.play();
+    btn.textContent = '⏸';
+  } else {
+    audio.pause();
+    btn.textContent = '▶';
+  }
+}
+function setVol(v) {
+  document.getElementById('bgMusic').volume = v;
+  document.getElementById('volText').textContent = Math.round(v * 100) + '%';
 }
 
 function resetAll() {
