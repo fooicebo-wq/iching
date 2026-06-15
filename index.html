@@ -247,6 +247,51 @@
     margin: 0 auto;
   }
   .reset-btn:hover { border-color: #8a6020; color: #c8a050; }
+
+  /* ── Splash 開場 ── */
+  #splash {
+    position: fixed; inset: 0;
+    background: #0e0a04;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.8s ease;
+  }
+  #splash.fade-out { opacity: 0; pointer-events: none; }
+  .splash-deco {
+    font-size: 2.5rem; color: #c89000;
+    letter-spacing: 0.2em; margin-bottom: 1.5rem;
+    opacity: 0; animation: splashFadeIn 1s ease 0.3s forwards;
+  }
+  .splash-text {
+    font-size: 1.15rem; color: #e8d5a3;
+    line-height: 2.4; text-align: center;
+    letter-spacing: 0.18em;
+    opacity: 0; animation: splashFadeIn 1.2s ease 0.8s forwards;
+  }
+  .splash-text .word-key { color: #f0c060; font-size: 1.4rem; font-weight: bold; }
+  .splash-brand {
+    margin-top: 2rem;
+    font-size: 0.85rem; color: #6a5020;
+    letter-spacing: 0.25em;
+    opacity: 0; animation: splashFadeIn 1s ease 1.8s forwards;
+  }
+  .splash-enter {
+    margin-top: 2.5rem;
+    background: none; border: 1px solid #6a5020;
+    color: #c8a050; font-size: 0.9rem;
+    letter-spacing: 0.2em; padding: 0.6rem 2rem;
+    border-radius: 4px; cursor: pointer;
+    font-family: inherit;
+    opacity: 0; animation: splashFadeIn 1s ease 2.2s forwards;
+    transition: all 0.2s;
+  }
+  .splash-enter:hover { background: #2a1e0a; border-color: #c89000; color: #f0d070; }
+  @keyframes splashFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
   .footer-logo {
     text-align: center;
     margin-top: 2.5rem;
@@ -289,6 +334,17 @@
 </style>
 </head>
 <body>
+<!-- 開場動畫 -->
+<div id="splash">
+  <div class="splash-deco">☰ ☷ ☲ ☵</div>
+  <div class="splash-text">
+    <span class="word-key">集</span>：集天地交泰之和<br>
+    <span class="word-key">思</span>：思陰陽流轉之幾
+  </div>
+  <div class="splash-brand">集 思 室 內 設 計</div>
+  <button class="splash-enter" onclick="enterMain()">入 卦</button>
+</div>
+
 <h1>易 經 卜 卦</h1>
 <p class="subtitle">周易 · 三錢起卦法</p>
 
@@ -765,6 +821,12 @@ function makeHexCard(hexNum, lineDisplay, label, plainLabel) {
   }
 
   return card;
+}
+
+function enterMain() {
+  const splash = document.getElementById('splash');
+  splash.classList.add('fade-out');
+  setTimeout(() => splash.style.display = 'none', 900);
 }
 
 function toggleMusic() {
