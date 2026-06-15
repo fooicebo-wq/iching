@@ -251,45 +251,112 @@
   /* ── Splash 開場 ── */
   #splash {
     position: fixed; inset: 0;
-    background: #0e0a04;
+    background: #0a0702;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     z-index: 9999;
-    transition: opacity 0.8s ease;
+    overflow: hidden;
+    transition: opacity 1s ease;
   }
   #splash.fade-out { opacity: 0; pointer-events: none; }
-  .splash-deco {
-    font-size: 2.5rem; color: #c89000;
-    letter-spacing: 0.2em; margin-bottom: 1.5rem;
-    opacity: 0; animation: splashFadeIn 1s ease 0.3s forwards;
+
+  /* 粒子背景 */
+  #splash-canvas {
+    position: absolute; inset: 0;
+    pointer-events: none;
   }
-  .splash-text {
-    font-size: 1.15rem; color: #e8d5a3;
-    line-height: 2.4; text-align: center;
-    letter-spacing: 0.18em;
-    opacity: 0; animation: splashFadeIn 1.2s ease 0.8s forwards;
+
+  /* 中央光暈 */
+  .splash-glow {
+    position: absolute;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #c8900018 0%, transparent 70%);
+    animation: glowPulse 3s ease-in-out infinite;
   }
-  .splash-text .word-key { color: #f0c060; font-size: 1.4rem; font-weight: bold; }
+  @keyframes glowPulse {
+    0%,100% { transform: scale(1); opacity: 0.6; }
+    50%      { transform: scale(1.3); opacity: 1; }
+  }
+
+  /* 大字符 */
+  .splash-chars {
+    display: flex; gap: 3rem; margin-bottom: 2rem;
+    position: relative; z-index: 1;
+  }
+  .splash-char {
+    display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
+  }
+  .char-big {
+    font-size: 4rem; font-weight: bold;
+    color: #f0c060;
+    text-shadow: 0 0 30px #c89000, 0 0 60px #c8900060;
+    opacity: 0;
+    position: relative;
+  }
+  .char-big::after {
+    content: '';
+    position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 2px;
+    background: #c89000;
+    box-shadow: 0 0 8px #c89000;
+    transition: width 0.6s ease;
+  }
+  .char-big.revealed::after { width: 100%; }
+  .char-big.c1 { animation: charDrop 0.7s cubic-bezier(.2,1.4,.5,1) 0.5s forwards; }
+  .char-big.c2 { animation: charDrop 0.7s cubic-bezier(.2,1.4,.5,1) 1.2s forwards; }
+  @keyframes charDrop {
+    from { opacity: 0; transform: translateY(-40px) scale(1.4); filter: blur(8px); }
+    to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
+
+  .char-desc {
+    font-size: 0.85rem; color: #c8a050;
+    letter-spacing: 0.22em; white-space: nowrap;
+    opacity: 0;
+  }
+  .char-desc.d1 { animation: fadeUp 0.8s ease 1.0s forwards; }
+  .char-desc.d2 { animation: fadeUp 0.8s ease 1.7s forwards; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 分隔線 */
+  .splash-divider {
+    width: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, #c89000, transparent);
+    margin-bottom: 1.5rem;
+    position: relative; z-index: 1;
+    animation: lineExpand 1s ease 2.1s forwards;
+  }
+  @keyframes lineExpand {
+    from { width: 0; opacity: 0; }
+    to   { width: 200px; opacity: 1; }
+  }
+
   .splash-brand {
-    margin-top: 2rem;
-    font-size: 0.85rem; color: #6a5020;
-    letter-spacing: 0.25em;
-    opacity: 0; animation: splashFadeIn 1s ease 1.8s forwards;
+    font-size: 0.82rem; color: #806030;
+    letter-spacing: 0.35em;
+    opacity: 0; position: relative; z-index: 1;
+    animation: fadeUp 0.8s ease 2.4s forwards;
   }
   .splash-enter {
-    margin-top: 2.5rem;
-    background: none; border: 1px solid #6a5020;
-    color: #c8a050; font-size: 0.9rem;
-    letter-spacing: 0.2em; padding: 0.6rem 2rem;
-    border-radius: 4px; cursor: pointer;
+    margin-top: 2rem;
+    background: none; border: 1px solid #5a4010;
+    color: #c8a050; font-size: 0.88rem;
+    letter-spacing: 0.25em; padding: 0.6rem 2.2rem;
+    border-radius: 3px; cursor: pointer;
     font-family: inherit;
-    opacity: 0; animation: splashFadeIn 1s ease 2.2s forwards;
-    transition: all 0.2s;
+    opacity: 0; position: relative; z-index: 1;
+    animation: fadeUp 0.8s ease 2.9s forwards;
+    transition: all 0.3s;
   }
-  .splash-enter:hover { background: #2a1e0a; border-color: #c89000; color: #f0d070; }
-  @keyframes splashFadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+  .splash-enter:hover {
+    background: #c8900015;
+    border-color: #c89000;
+    color: #f0d070;
+    box-shadow: 0 0 20px #c8900040;
   }
 
   .footer-logo {
@@ -336,11 +403,19 @@
 <body>
 <!-- 開場動畫 -->
 <div id="splash">
-  <div class="splash-deco">☰ ☷ ☲ ☵</div>
-  <div class="splash-text">
-    <span class="word-key">集</span>：集天地交泰之和<br>
-    <span class="word-key">思</span>：思陰陽流轉之幾
+  <canvas id="splash-canvas"></canvas>
+  <div class="splash-glow"></div>
+  <div class="splash-chars">
+    <div class="splash-char">
+      <div class="char-big c1" id="charJi">集</div>
+      <div class="char-desc d1">天地交泰之和</div>
+    </div>
+    <div class="splash-char">
+      <div class="char-big c2" id="charSi">思</div>
+      <div class="char-desc d2">陰陽流轉之幾</div>
+    </div>
   </div>
+  <div class="splash-divider"></div>
   <div class="splash-brand">集 思 室 內 設 計</div>
   <button class="splash-enter" onclick="enterMain()">入 卦</button>
 </div>
@@ -823,10 +898,57 @@ function makeHexCard(hexNum, lineDisplay, label, plainLabel) {
   return card;
 }
 
+// 粒子背景
+(function initParticles() {
+  const canvas = document.getElementById('splash-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  for (let i = 0; i < 60; i++) {
+    particles.push({
+      x: Math.random() * 1000,
+      y: Math.random() * 1000,
+      r: Math.random() * 1.5 + 0.3,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: -Math.random() * 0.5 - 0.1,
+      a: Math.random(),
+    });
+  }
+  function draw() {
+    if (!document.getElementById('splash') || document.getElementById('splash').style.display === 'none') return;
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.a += 0.005;
+      if (p.y < -5) { p.y = H + 5; p.x = Math.random() * W; }
+      const alpha = (Math.sin(p.a) * 0.5 + 0.5) * 0.6;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200,144,0,${alpha})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  // 等 canvas 在 DOM 後啟動
+  setTimeout(() => {
+    particles.forEach(p => { p.x = Math.random() * W; p.y = Math.random() * H; });
+    draw();
+    // 動畫結束後加 revealed class
+    setTimeout(() => {
+      document.getElementById('charJi')?.classList.add('revealed');
+      document.getElementById('charSi')?.classList.add('revealed');
+    }, 1300);
+  }, 100);
+})();
+
 function enterMain() {
   const splash = document.getElementById('splash');
   splash.classList.add('fade-out');
-  setTimeout(() => splash.style.display = 'none', 900);
+  setTimeout(() => splash.style.display = 'none', 1000);
 }
 
 function toggleMusic() {
