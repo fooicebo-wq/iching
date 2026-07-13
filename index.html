@@ -58,6 +58,37 @@
     text-align: center;
   }
   .coins-area h2 { font-size: 1rem; color: #c8a050; margin-bottom: 1rem; letter-spacing: 0.15em; }
+
+  /* 模式切換 */
+  .mode-toggle {
+    display: inline-flex;
+    border: 1px solid #6a4e1a;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .mode-btn {
+    background: transparent;
+    border: none;
+    color: #806030;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    padding: 0.4rem 1.2rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .mode-btn + .mode-btn { border-left: 1px solid #6a4e1a; }
+  .mode-btn.active {
+    background: #c89000;
+    color: #1a1005;
+    font-weight: bold;
+  }
+  .mode-btn:not(.active):hover { color: #c8a050; }
+
+  .coin.selectable:hover { transform: scale(1.08); box-shadow: 0 3px 14px #c8900060, inset 0 1px 3px #ffffff30; }
+  .manual-hint { font-size: 0.78rem; color: #a08040; margin-bottom: 0.8rem; display: none; }
+  .manual-hint.visible { display: block; }
   .line-indicator { font-size: 0.85rem; color: #a08040; margin-bottom: 1rem; }
   .coins-row { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.2rem; }
   .coin {
@@ -434,22 +465,27 @@
   <!-- 銅錢區域 -->
   <div class="coins-area" id="coinsArea">
     <h2>搖 卦</h2>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="modeAuto" onclick="setMode('auto')">自動搖卦</button>
+      <button class="mode-btn" id="modeManual" onclick="setMode('manual')">手動點選</button>
+    </div>
     <div class="line-indicator" id="lineIndicator">請投擲銅錢，由第一爻（初爻）起，共投六次</div>
+    <div class="manual-hint" id="manualHint">點擊銅錢切換陰陽（陽＝3、陰＝2），三錢合計定爻，再按「確認此爻」</div>
     <div class="coins-row" id="coinsRow">
       <div>
-        <div class="coin" id="coin0">☰</div>
+        <div class="coin" id="coin0" onclick="toggleCoin(0)">☰</div>
         <div class="coin-label">銅錢一</div>
       </div>
       <div>
-        <div class="coin" id="coin1">☰</div>
+        <div class="coin" id="coin1" onclick="toggleCoin(1)">☰</div>
         <div class="coin-label">銅錢二</div>
       </div>
       <div>
-        <div class="coin" id="coin2">☰</div>
+        <div class="coin" id="coin2" onclick="toggleCoin(2)">☰</div>
         <div class="coin-label">銅錢三</div>
       </div>
     </div>
-    <button class="btn-toss" id="btnToss" onclick="tossCoins()">擲 錢</button>
+    <button class="btn-toss" id="btnToss" onclick="tossOrConfirm()">擲 錢</button>
     <div class="toss-sum" id="tossSumText"></div>
     <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
   </div>
@@ -649,6 +685,8 @@ const HEXAGRAMS = {
 let currentLine = 0;
 let lines = []; // each: { value: 6|7|8|9, yang: bool, changing: bool }
 let isAnimating = false;
+let mode = 'auto'; // 'auto' | 'manual'
+let manualYang = [true, true, true]; // 手動模式三枚銅錢的陰陽（陽=3、陰=2）
 
 function getLineTypeName(v) {
   if (v === 9) return '老陽 ○';
@@ -656,6 +694,61 @@ function getLineTypeName(v) {
   if (v === 7) return '少陽 —';
   if (v === 6) return '老陰 ×';
   return '';
+}
+
+function setMode(m) {
+  if (isAnimating || mode === m) return;
+  mode = m;
+  document.getElementById('modeAuto').classList.toggle('active', m === 'auto');
+  document.getElementById('modeManual').classList.toggle('active', m === 'manual');
+  document.getElementById('manualHint').classList.toggle('visible', m === 'manual');
+
+  const btn = document.getElementById('btnToss');
+  if (currentLine < 6) {
+    btn.textContent = (m === 'auto') ? '擲 錢' : '確認此爻';
+    btn.disabled = false;
+  }
+
+  if (m === 'manual' && currentLine < 6) {
+    [0, 1, 2].forEach(i => setCoinFace(i, manualYang[i]));
+    updateManualPreview();
+  } else {
+    [0, 1, 2].forEach(i => document.getElementById('coin' + i).classList.remove('selectable'));
+    if (currentLine < 6) document.getElementById('tossSumText').textContent = '';
+  }
+  updateLineIndicator();
+}
+
+function setCoinFace(i, yang) {
+  const c = document.getElementById('coin' + i);
+  c.textContent = yang ? '陽' : '陰';
+  c.className = 'coin ' + (yang ? 'heads' : 'tails')
+    + ((mode === 'manual' && currentLine < 6) ? ' selectable' : '');
+}
+
+function toggleCoin(i) {
+  if (mode !== 'manual' || isAnimating || currentLine >= 6) return;
+  manualYang[i] = !manualYang[i];
+  setCoinFace(i, manualYang[i]);
+  updateManualPreview();
+}
+
+function updateManualPreview() {
+  const sum = manualYang.reduce((s, y) => s + (y ? 3 : 2), 0);
+  const changing = (sum === 6 || sum === 9);
+  document.getElementById('tossSumText').textContent =
+    `點數：${sum} → ${getLineTypeName(sum)}${changing ? '（動爻）' : ''}`;
+}
+
+function tossOrConfirm() {
+  if (mode === 'auto') tossCoins();
+  else confirmManual();
+}
+
+function confirmManual() {
+  if (isAnimating || currentLine >= 6) return;
+  const sum = manualYang.reduce((s, y) => s + (y ? 3 : 2), 0);
+  recordLine(sum);
 }
 
 function tossCoins() {
@@ -682,27 +775,33 @@ function tossCoins() {
       }
     });
 
-    const isYang = (sum === 7 || sum === 9);
-    const changing = (sum === 6 || sum === 9);
-    lines.push({ value: sum, yang: isYang, changing });
-
-    const typeText = getLineTypeName(sum);
-    document.getElementById('tossSumText').textContent = `點數：${sum} → ${typeText}${changing ? '（動爻）' : ''}`;
-
-    renderLineRows();
-    currentLine++;
-    document.getElementById('progressFill').style.width = (currentLine / 6 * 100) + '%';
-    updateLineIndicator();
-
-    if (currentLine >= 6) {
-      btn.textContent = '卦已成';
-      btn.disabled = true;
-      setTimeout(showResult, 600);
-    } else {
-      isAnimating = false;
-      btn.disabled = false;
-    }
+    recordLine(sum);
   }, 550);
+}
+
+function recordLine(sum) {
+  const btn = document.getElementById('btnToss');
+  const isYang = (sum === 7 || sum === 9);
+  const changing = (sum === 6 || sum === 9);
+  lines.push({ value: sum, yang: isYang, changing });
+
+  const typeText = getLineTypeName(sum);
+  document.getElementById('tossSumText').textContent = `點數：${sum} → ${typeText}${changing ? '（動爻）' : ''}`;
+
+  renderLineRows();
+  currentLine++;
+  document.getElementById('progressFill').style.width = (currentLine / 6 * 100) + '%';
+  updateLineIndicator();
+
+  if (currentLine >= 6) {
+    btn.textContent = '卦已成';
+    btn.disabled = true;
+    [0, 1, 2].forEach(i => document.getElementById('coin' + i).classList.remove('selectable'));
+    setTimeout(showResult, 600);
+  } else {
+    isAnimating = false;
+    btn.disabled = false;
+  }
 }
 
 function renderLineRows() {
@@ -746,10 +845,15 @@ function renderLineRows() {
 
 function updateLineIndicator() {
   const names = ['初爻','二爻','三爻','四爻','五爻','上爻'];
-  if (currentLine < 6) {
-    document.getElementById('lineIndicator').textContent = '請投擲第 ' + (currentLine + 1) + ' 次（' + names[currentLine] + '）';
+  const el = document.getElementById('lineIndicator');
+  if (currentLine >= 6) {
+    el.textContent = '六爻已成，卦象呈現如下';
+  } else if (lines.length === 0 && mode === 'auto') {
+    el.textContent = '請投擲銅錢，由第一爻（初爻）起，共投六次';
+  } else if (mode === 'auto') {
+    el.textContent = '請投擲第 ' + (currentLine + 1) + ' 次（' + names[currentLine] + '）';
   } else {
-    document.getElementById('lineIndicator').textContent = '六爻已成，卦象呈現如下';
+    el.textContent = '請點選第 ' + (currentLine + 1) + ' 爻（' + names[currentLine] + '）的陰陽';
   }
 }
 
@@ -971,20 +1075,26 @@ function resetAll() {
   currentLine = 0;
   lines = [];
   isAnimating = false;
+  manualYang = [true, true, true];
 
   const btn = document.getElementById('btnToss');
-  btn.textContent = '擲 錢';
+  btn.textContent = (mode === 'auto') ? '擲 錢' : '確認此爻';
   btn.disabled = false;
 
-  ['coin0','coin1','coin2'].forEach(id => {
-    const c = document.getElementById(id);
-    c.textContent = '☰';
-    c.className = 'coin heads';
-  });
+  if (mode === 'manual') {
+    [0, 1, 2].forEach(i => setCoinFace(i, manualYang[i]));
+    updateManualPreview();
+  } else {
+    ['coin0','coin1','coin2'].forEach(id => {
+      const c = document.getElementById(id);
+      c.textContent = '☰';
+      c.className = 'coin heads';
+    });
+    document.getElementById('tossSumText').textContent = '';
+  }
 
-  document.getElementById('tossSumText').textContent = '';
   document.getElementById('progressFill').style.width = '0%';
-  document.getElementById('lineIndicator').textContent = '請投擲銅錢，由第一爻（初爻）起，共投六次';
+  updateLineIndicator();
   document.getElementById('lineRows').innerHTML = '<div style="color:#4a3a10;font-size:0.85rem;text-align:center;padding:1rem 0;">尚未起卦</div>';
   document.getElementById('resultArea').classList.remove('visible');
   document.getElementById('resetBtn').style.display = 'none';
